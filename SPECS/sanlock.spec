@@ -1,6 +1,6 @@
 Name:           sanlock
 Version:        3.8.4
-Release:        1%{?dist}
+Release:        4%{?dist}
 Summary:        A shared storage lock manager
 
 Group:          System Environment/Base
@@ -23,6 +23,11 @@ Requires(preun): systemd-units
 Requires(postun): systemd-units
 Source0:        https://releases.pagure.org/sanlock/%{name}-%{version}.tar.gz
 
+Patch0: 0001-sanlock-fix-memory-leak-of-lockspace-renewal_history.patch
+Patch1: 0002-sanlock-fix-pthread_create-error-check.patch
+Patch2: 0003-Revert-sanlock-Shrink-thread-pool-when-there-is-no-w.patch
+Patch3: 0004-sanlock-fix-pthread_create-error-paths.patch
+
 %global python_package python3-%{name}
 
 %description
@@ -30,6 +35,10 @@ The sanlock daemon manages leases for applications on hosts using shared storage
 
 %prep
 %setup -q
+%patch0 -p1 -b .backup0
+%patch1 -p1 -b .backup1
+%patch2 -p1 -b .backup2
+%patch3 -p1 -b .backup3
 
 %build
 # upstream does not require configure
@@ -183,6 +192,12 @@ common sanlock lockspace.
 
 
 %changelog
+* Wed Jul 06 2022 David Teigland <teigland@redhat.com> - 3.8.4-4
+- rebuild with larger release number
+
+* Fri Mar 18 2022 David Teigland <teigland@redhat.com> - 3.8.4-2
+- Resolves: rhbz#2058438
+
 * Tue Jun 01 2021 David Teigland <teigland@redhat.com> 3.8.4-1
 - Update to sanlock-3.8.4
 
