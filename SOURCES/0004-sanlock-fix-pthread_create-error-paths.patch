@@ -1,0 +1,63 @@
+From 574d3cc3ecccd1e8a6c1a8a861dd4847a05789f5 Mon Sep 17 00:00:00 2001
+From: David Teigland <teigland@redhat.com>
+Date: Fri, 18 Mar 2022 09:32:06 -0500
+Subject: [PATCH 4/4] sanlock: fix pthread_create error paths
+
+The fix for pthread_create errors in commit
+  5abb9d50616d399914958b99352b8cf016e4928a
+  sanlock: fix pthread_create error check
+missed error handling further in the exit path.
+---
+ src/lockspace.c | 1 +
+ src/main.c      | 8 ++++++--
+ 2 files changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/src/lockspace.c b/src/lockspace.c
+index 582a0e973566..d9b79f6de257 100644
+--- a/src/lockspace.c
++++ b/src/lockspace.c
+@@ -1072,6 +1072,7 @@ int add_lockspace_start(struct sanlk_lockspace *ls, uint32_t io_timeout, struct
+ 	rv = pthread_create(&sp->thread, NULL, lockspace_thread, sp);
+ 	if (rv) {
+ 		log_erros(sp, "add_lockspace create thread failed %d", rv);
++		rv = -1;
+ 		goto fail_del;
+ 	}
+ 
+diff --git a/src/main.c b/src/main.c
+index b447b723a490..5a0f9ba677ff 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -995,6 +995,7 @@ static int thread_pool_add_work(struct cmd_args *ca)
+ 			log_error("thread_pool_add_work ci %d error %d", ca->ci_in, rv);
+ 			list_del(&ca->list);
+ 			pthread_mutex_unlock(&pool.mutex);
++			rv = -1;
+ 			return rv;
+ 		}
+ 		pool.num_workers++;
+@@ -1019,7 +1020,7 @@ static void thread_pool_free(void)
+ static int thread_pool_create(int min_workers, int max_workers)
+ {
+ 	pthread_t th;
+-	int i, rv;
++	int i, rv = 0;
+ 
+ 	memset(&pool, 0, sizeof(pool));
+ 	INIT_LIST_HEAD(&pool.work_data);
+@@ -1031,8 +1032,11 @@ static int thread_pool_create(int min_workers, int max_workers)
+ 	for (i = 0; i < min_workers; i++) {
+ 		rv = pthread_create(&th, NULL, thread_pool_worker,
+ 				    (void *)(long)i);
+-		if (rv)
++		if (rv) {
++			log_error("thread_pool_create failed %d", rv);
++			rv = -1;
+ 			break;
++		}
+ 		pool.num_workers++;
+ 	}
+ 
+-- 
+2.7.5
+
