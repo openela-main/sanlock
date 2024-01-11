@@ -1,0 +1,30 @@
+From e82899fd996f4901e1ec89d77e4a17a1032fee8f Mon Sep 17 00:00:00 2001
+From: David Teigland <teigland@redhat.com>
+Date: Thu, 3 Mar 2022 09:39:52 -0600
+Subject: [PATCH 1/4] sanlock: fix memory leak of lockspace renewal_history
+
+Leak was in original commit for "sanlock: renewal history"
+6313c709722b3ba63234a75d1651a160bf1728ee.
+
+With the default renewal history size, each lockspace that
+was created would leak about 4kb of memory.
+---
+ src/lockspace.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/lockspace.c b/src/lockspace.c
+index 2ebc247dce41..d23dccd84815 100644
+--- a/src/lockspace.c
++++ b/src/lockspace.c
+@@ -939,6 +939,8 @@ static void free_sp(struct space *sp)
+ {
+ 	if (sp->lease_status.renewal_read_buf)
+ 		free(sp->lease_status.renewal_read_buf);
++	if (sp->renewal_history)
++		free(sp->renewal_history);
+ 	free(sp);
+ }
+ 
+-- 
+2.7.5
+

@@ -1,0 +1,42 @@
+From 4ed90cfb2462d3463ae74935c5eeb9d9588ea098 Mon Sep 17 00:00:00 2001
+From: David Teigland <teigland@redhat.com>
+Date: Thu, 17 Mar 2022 13:41:31 -0500
+Subject: [PATCH 3/4] Revert "sanlock: Shrink thread pool when there is no
+ work"
+
+This reverts commit 0ff9c1ab8852bec846822ee2af55ebcb7e5f5967.
+
+This patch causes unexplained growth in memory usage.
+Part of the problem may be that the worker threads are
+not joined and the detached state is not set, but an
+initial test setting the detached state didn't seem
+to fix the problem.
+---
+ src/main.c | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/src/main.c b/src/main.c
+index 613fb0ee23d5..b447b723a490 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -946,9 +946,6 @@ static void *thread_pool_worker(void *data)
+ 
+ 	while (1) {
+ 		while (!pool.quit && list_empty(&pool.work_data)) {
+-			if (pool.free_workers >= DEFAULT_MIN_WORKER_THREADS)
+-				goto out;
+-
+ 			pool.free_workers++;
+ 			pthread_cond_wait(&pool.cond, &pool.mutex);
+ 			pool.free_workers--;
+@@ -969,7 +966,6 @@ static void *thread_pool_worker(void *data)
+ 			break;
+ 	}
+ 
+-out:
+ 	pool.num_workers--;
+ 	if (!pool.num_workers)
+ 		pthread_cond_signal(&pool.quit_wait);
+-- 
+2.7.5
+
