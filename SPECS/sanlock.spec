@@ -1,6 +1,6 @@
 Name:           sanlock
-Version:        3.8.4
-Release:        4%{?dist}
+Version:        3.9.1
+Release:        1%{?dist}
 Summary:        A shared storage lock manager
 
 License:        GPLv2 and GPLv2+ and LGPLv2+
@@ -22,20 +22,14 @@ Requires(preun): systemd-units
 Requires(postun): systemd-units
 Source0:        https://releases.pagure.org/sanlock/%{name}-%{version}.tar.gz
 
-Patch0: 0001-sanlock-fix-memory-leak-of-lockspace-renewal_history.patch
-Patch1: 0002-sanlock-fix-pthread_create-error-check.patch
-Patch2: 0003-Revert-sanlock-Shrink-thread-pool-when-there-is-no-w.patch
-Patch3: 0004-sanlock-fix-pthread_create-error-paths.patch
+#Patch0:
 
 %description
 The sanlock daemon manages leases for applications on hosts using shared storage.
 
 %prep
 %setup -q
-%patch0 -p1 -b .backup0
-%patch1 -p1 -b .backup1
-%patch2 -p1 -b .backup2
-%patch3 -p1 -b .backup3
+#%patch0 -p1 -b .backup0
 
 %build
 %set_build_flags
@@ -60,8 +54,8 @@ make -C python \
 
 
 install -D -m 0644 init.d/sanlock.service.native $RPM_BUILD_ROOT/%{_unitdir}/sanlock.service
-install -D -m 0755 init.d/wdmd $RPM_BUILD_ROOT/usr/lib/systemd/systemd-wdmd
-install -D -m 0644 init.d/wdmd.service.native $RPM_BUILD_ROOT/%{_unitdir}/wdmd.service
+install -D -m 0755 init.d/systemd-wdmd $RPM_BUILD_ROOT/usr/lib/systemd/systemd-wdmd
+install -D -m 0644 init.d/wdmd.service $RPM_BUILD_ROOT/%{_unitdir}/wdmd.service
 
 install -D -m 0644 src/logrotate.sanlock \
     $RPM_BUILD_ROOT/etc/logrotate.d/sanlock
@@ -73,7 +67,7 @@ install -D -m 0644 init.d/wdmd.sysconfig \
     $RPM_BUILD_ROOT/etc/sysconfig/wdmd
 
 install -Dd -m 0755 $RPM_BUILD_ROOT/etc/wdmd.d
-install -Dd -m 0775 $RPM_BUILD_ROOT/%{_localstatedir}/run/sanlock
+install -Dd -m 0775 $RPM_BUILD_ROOT/run/sanlock
 
 %pre
 getent group sanlock > /dev/null || /usr/sbin/groupadd \
@@ -100,15 +94,12 @@ getent passwd sanlock > /dev/null || /usr/sbin/useradd \
 %{_sbindir}/wdmd
 %dir %{_sysconfdir}/wdmd.d
 %dir %{_sysconfdir}/sanlock
-%dir %attr(-,sanlock,sanlock) %{_localstatedir}/run/sanlock
+%dir %attr(-,sanlock,sanlock) /run/sanlock
 %{_mandir}/man8/wdmd*
 %{_mandir}/man8/sanlock*
 %config(noreplace) %{_sysconfdir}/logrotate.d/sanlock
 %config(noreplace) %{_sysconfdir}/sanlock/sanlock.conf
 %config(noreplace) %{_sysconfdir}/sysconfig/wdmd
-%doc init.d/sanlock
-%doc init.d/sanlock.service
-%doc init.d/wdmd.service
 
 %package        lib
 Summary:        A shared storage lock manager library
@@ -162,6 +153,18 @@ developing applications that use %{name}.
 %{_libdir}/pkgconfig/libsanlock_client.pc
 
 %changelog
+* Mon Jan 22 2024 David Teigland <teigland@redhat.com> - 3.9.1-1
+- upstream release, fix rpm issues
+
+* Fri Dec 15 2023 David Teigland <teigland@redhat.com> - 3.9.0-3
+- fix rpm issues
+
+* Fri Dec 15 2023 David Teigland <teigland@redhat.com> - 3.9.0-2
+- fix rpm issues
+
+* Wed Dec 13 2023 David Teigland <teigland@redhat.com> - 3.9.0-1
+- rebase to new upstream release
+
 * Fri Apr 01 2022 David Teigland <teigland@redhat.com> - 3.8.4-4
 - fixes for thread/memory leak
 
@@ -173,7 +176,7 @@ developing applications that use %{name}.
   Related: rhbz#1991688
 
 * Mon Jun 28 2021 David Teigland <teigland@redhat.com> - 3.8.1-10
-- fuck this process
+- f#ck this process
 
 * Fri Apr 16 2021 Mohan Boddu <mboddu@redhat.com> - 3.8.1-9
 - Rebuilt for RHEL 9 BETA on Apr 15th 2021. Related: rhbz#1947937
