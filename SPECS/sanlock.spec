@@ -1,6 +1,6 @@
 Name:           sanlock
-Version:        3.9.1
-Release:        1%{?dist}
+Version:        3.9.3
+Release:        2%{?dist}
 Summary:        A shared storage lock manager
 
 License:        GPLv2 and GPLv2+ and LGPLv2+
@@ -22,14 +22,14 @@ Requires(preun): systemd-units
 Requires(postun): systemd-units
 Source0:        https://releases.pagure.org/sanlock/%{name}-%{version}.tar.gz
 
-#Patch0:
+Patch0: 0001-sanlock-fix-invalid-strcpy-in-direct-dump.patch
 
 %description
 The sanlock daemon manages leases for applications on hosts using shared storage.
 
 %prep
 %setup -q
-#%patch0 -p1 -b .backup0
+%patch0 -p1 -b .backup0
 
 %build
 %set_build_flags
@@ -153,6 +153,12 @@ developing applications that use %{name}.
 %{_libdir}/pkgconfig/libsanlock_client.pc
 
 %changelog
+* Wed Aug 14 2024 David Teigland <teigland@redhat.com> - 3.9.3-2
+- fix invalid strcpy in direct dump
+
+* Wed May 15 2024 David Teigland <teigland@redhat.com> - 3.9.3-1
+- upstream release
+
 * Mon Jan 22 2024 David Teigland <teigland@redhat.com> - 3.9.1-1
 - upstream release, fix rpm issues
 
