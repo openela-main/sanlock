@@ -1,6 +1,6 @@
 Name:           sanlock
-Version:        3.9.3
-Release:        2%{?dist}
+Version:        3.9.5
+Release:        3%{?dist}
 Summary:        A shared storage lock manager
 
 License:        GPLv2 and GPLv2+ and LGPLv2+
@@ -22,7 +22,8 @@ Requires(preun): systemd-units
 Requires(postun): systemd-units
 Source0:        https://releases.pagure.org/sanlock/%{name}-%{version}.tar.gz
 
-Patch0: 0001-sanlock-fix-invalid-strcpy-in-direct-dump.patch
+Patch0: 0001-systemd-wdmd-work-around-race-with-udev-setting-soft.patch
+Patch1: 0002-sanlock-new-NODELAY-flag-for-add_lockspace.patch
 
 %description
 The sanlock daemon manages leases for applications on hosts using shared storage.
@@ -30,6 +31,7 @@ The sanlock daemon manages leases for applications on hosts using shared storage
 %prep
 %setup -q
 %patch0 -p1 -b .backup0
+%patch1 -p1 -b .backup1
 
 %build
 %set_build_flags
@@ -153,6 +155,15 @@ developing applications that use %{name}.
 %{_libdir}/pkgconfig/libsanlock_client.pc
 
 %changelog
+* Wed Oct 23 2024 David Teigland <teigland@redhat.com> - 3.9.5-3
+- new nodelay flag for add_lockspace
+
+* Mon Oct 21 2024 David Teigland <teigland@redhat.com> - 3.9.5-2
+- spec file fixes
+
+* Fri Oct 18 2024 David Teigland <teigland@redhat.com> - 3.9.5-1
+- upstream release 3.9.5, and udevadm settle patch
+
 * Wed Aug 14 2024 David Teigland <teigland@redhat.com> - 3.9.3-2
 - fix invalid strcpy in direct dump
 
