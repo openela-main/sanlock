@@ -1,6 +1,6 @@
 Name:           sanlock
-Version:        3.9.5
-Release:        3%{?dist}
+Version:        4.0.0
+Release:        2%{?dist}
 Summary:        A shared storage lock manager
 
 License:        GPLv2 and GPLv2+ and LGPLv2+
@@ -22,8 +22,7 @@ Requires(preun): systemd-units
 Requires(postun): systemd-units
 Source0:        https://releases.pagure.org/sanlock/%{name}-%{version}.tar.gz
 
-Patch0: 0001-systemd-wdmd-work-around-race-with-udev-setting-soft.patch
-Patch1: 0002-sanlock-new-NODELAY-flag-for-add_lockspace.patch
+Patch0: 0001-sanlock-fix-zero-io-timeout-for-direct-lockspace-req.patch
 
 %description
 The sanlock daemon manages leases for applications on hosts using shared storage.
@@ -31,7 +30,6 @@ The sanlock daemon manages leases for applications on hosts using shared storage
 %prep
 %setup -q
 %patch0 -p1 -b .backup0
-%patch1 -p1 -b .backup1
 
 %build
 %set_build_flags
@@ -55,9 +53,9 @@ make -C python \
         PY_VERSION=3
 
 
-install -D -m 0644 init.d/sanlock.service.native $RPM_BUILD_ROOT/%{_unitdir}/sanlock.service
-install -D -m 0755 init.d/systemd-wdmd $RPM_BUILD_ROOT/usr/lib/systemd/systemd-wdmd
-install -D -m 0644 init.d/wdmd.service $RPM_BUILD_ROOT/%{_unitdir}/wdmd.service
+install -D -m 0644 init.d/sanlock.service.native $RPM_BUILD_ROOT%{_unitdir}/sanlock.service
+install -D -m 0755 init.d/systemd-wdmd $RPM_BUILD_ROOT%{_prefix}/lib/systemd/systemd-wdmd
+install -D -m 0644 init.d/wdmd.service $RPM_BUILD_ROOT%{_unitdir}/wdmd.service
 
 install -D -m 0644 src/logrotate.sanlock \
     $RPM_BUILD_ROOT/etc/logrotate.d/sanlock
@@ -89,7 +87,7 @@ getent passwd sanlock > /dev/null || /usr/sbin/useradd \
 %systemd_postun wdmd.service sanlock.service
 
 %files
-/usr/lib/systemd/systemd-wdmd
+%{_prefix}/lib/systemd/systemd-wdmd
 %{_unitdir}/sanlock.service
 %{_unitdir}/wdmd.service
 %{_sbindir}/sanlock
@@ -155,6 +153,12 @@ developing applications that use %{name}.
 %{_libdir}/pkgconfig/libsanlock_client.pc
 
 %changelog
+* Wed Aug 06 2025 Marian Csontos <mcsontos@redhat.com> - 4.0.0-2
+- Bump release.
+
+* Thu May 01 2025 David Teigland <teigland@redhat.com> - 4.0.0-1
+- new upstream release
+
 * Wed Oct 23 2024 David Teigland <teigland@redhat.com> - 3.9.5-3
 - new nodelay flag for add_lockspace
 
