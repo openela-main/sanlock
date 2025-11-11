@@ -1,6 +1,6 @@
 Name:           sanlock
-Version:        3.9.5
-Release:        4%{?dist}
+Version:        4.0.0
+Release:        1%{?dist}
 Summary:        A shared storage lock manager
 License:        GPL-2.0-only AND GPL-2.0-or-later AND LGPL-2.0-or-later
 URL:            https://pagure.io/sanlock/
@@ -17,8 +17,7 @@ Requires(preun): systemd-units
 Requires(postun): systemd-units
 Source0:        https://releases.pagure.org/sanlock/%{name}-%{version}.tar.gz
 
-Patch0: 0001-systemd-wdmd-work-around-race-with-udev-setting-soft.patch
-Patch1: 0002-sanlock-new-NODELAY-flag-for-add_lockspace.patch
+Patch0: 0001-sanlock-fix-zero-io-timeout-for-direct-lockspace-req.patch
 
 %description
 The sanlock daemon manages leases for applications on hosts using shared storage.
@@ -26,7 +25,6 @@ The sanlock daemon manages leases for applications on hosts using shared storage
 %prep
 %setup -q
 %patch0 -p1 -b .backup0
-%patch1 -p1 -b .backup1
 
 %build
 %set_build_flags
@@ -134,6 +132,9 @@ developing applications that use %{name}.
 %{_libdir}/pkgconfig/libsanlock_client.pc
 
 %changelog
+* Wed Apr 30 2025 David Teigland <teigland@redhat.com> - 4.0.0-1
+- new upstream release
+
 * Wed Jan 08 2025 David Teigland <teigland@redhat.com> - 3.9.5-4
 - restore useradd and groupadd in place of sysusers rpm macros
 
