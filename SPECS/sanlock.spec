@@ -1,6 +1,6 @@
 Name:           sanlock
-Version:        4.0.0
-Release:        2%{?dist}
+Version:        4.1.0
+Release:        1%{?dist}
 Summary:        A shared storage lock manager
 
 License:        GPLv2 and GPLv2+ and LGPLv2+
@@ -22,14 +22,14 @@ Requires(preun): systemd-units
 Requires(postun): systemd-units
 Source0:        https://releases.pagure.org/sanlock/%{name}-%{version}.tar.gz
 
-Patch0: 0001-sanlock-fix-zero-io-timeout-for-direct-lockspace-req.patch
+#Patch0: 0001-
 
 %description
 The sanlock daemon manages leases for applications on hosts using shared storage.
 
 %prep
 %setup -q
-%patch0 -p1 -b .backup0
+#%%patch0 -p1 -b .backup0
 
 %build
 %set_build_flags
@@ -67,14 +67,13 @@ install -D -m 0644 init.d/wdmd.sysconfig \
     $RPM_BUILD_ROOT/etc/sysconfig/wdmd
 
 install -Dd -m 0755 $RPM_BUILD_ROOT/etc/wdmd.d
-install -Dd -m 0775 $RPM_BUILD_ROOT/run/sanlock
 
 %pre
 getent group sanlock > /dev/null || /usr/sbin/groupadd \
     -g 179 sanlock
 getent passwd sanlock > /dev/null || /usr/sbin/useradd \
     -u 179 -c "sanlock" -s /sbin/nologin -r \
-    -g 179 -d /var/run/sanlock sanlock
+    -g 179 -d /run/sanlock sanlock
 /usr/sbin/usermod -a -G disk sanlock
 
 %post
@@ -94,7 +93,6 @@ getent passwd sanlock > /dev/null || /usr/sbin/useradd \
 %{_sbindir}/wdmd
 %dir %{_sysconfdir}/wdmd.d
 %dir %{_sysconfdir}/sanlock
-%dir %attr(-,sanlock,sanlock) /run/sanlock
 %{_mandir}/man8/wdmd*
 %{_mandir}/man8/sanlock*
 %config(noreplace) %{_sysconfdir}/logrotate.d/sanlock
@@ -153,6 +151,9 @@ developing applications that use %{name}.
 %{_libdir}/pkgconfig/libsanlock_client.pc
 
 %changelog
+* Thu Oct 09 2025 Marian Csontos <mcsontos@redhat.com> - 4.1.0-1
+- new upstream release
+
 * Wed Aug 06 2025 Marian Csontos <mcsontos@redhat.com> - 4.0.0-2
 - Bump release.
 
