@@ -1,5 +1,5 @@
 Name:           sanlock
-Version:        4.0.0
+Version:        4.1.0
 Release:        1%{?dist}
 Summary:        A shared storage lock manager
 License:        GPL-2.0-only AND GPL-2.0-or-later AND LGPL-2.0-or-later
@@ -17,14 +17,14 @@ Requires(preun): systemd-units
 Requires(postun): systemd-units
 Source0:        https://releases.pagure.org/sanlock/%{name}-%{version}.tar.gz
 
-Patch0: 0001-sanlock-fix-zero-io-timeout-for-direct-lockspace-req.patch
+# Patch0: 0001-foo.patch
 
 %description
 The sanlock daemon manages leases for applications on hosts using shared storage.
 
 %prep
 %setup -q
-%patch0 -p1 -b .backup0
+# %patch0 -p1
 
 %build
 %set_build_flags
@@ -42,9 +42,9 @@ make -C wdmd \
         install LIBDIR=%{_libdir} \
         DESTDIR=$RPM_BUILD_ROOT
 
-install -D -m 0644 init.d/sanlock.service.native $RPM_BUILD_ROOT/%{_unitdir}/sanlock.service
-install -D -m 0755 init.d/systemd-wdmd $RPM_BUILD_ROOT/usr/lib/systemd/systemd-wdmd
-install -D -m 0644 init.d/wdmd.service $RPM_BUILD_ROOT/%{_unitdir}/wdmd.service
+install -D -m 0644 init.d/sanlock.service.native $RPM_BUILD_ROOT%{_unitdir}/sanlock.service
+install -D -m 0755 init.d/systemd-wdmd $RPM_BUILD_ROOT%{_prefix}/lib/systemd/systemd-wdmd
+install -D -m 0644 init.d/wdmd.service $RPM_BUILD_ROOT%{_unitdir}/wdmd.service
 
 install -p -D -m 0644 src/sanlock.sysusers $RPM_BUILD_ROOT/%{_sysusersdir}/sanlock.conf
 
@@ -80,7 +80,7 @@ getent passwd sanlock > /dev/null || /usr/sbin/useradd \
 %systemd_postun wdmd.service sanlock.service
 
 %files
-/usr/lib/systemd/systemd-wdmd
+%{_prefix}/lib/systemd/systemd-wdmd
 %{_unitdir}/sanlock.service
 %{_unitdir}/wdmd.service
 %{_sbindir}/sanlock
@@ -132,6 +132,9 @@ developing applications that use %{name}.
 %{_libdir}/pkgconfig/libsanlock_client.pc
 
 %changelog
+* Thu Oct 09 2025 Marian Csontos <mcsontos@redhat.com> - 4.1.0-1
+- new upstream release
+
 * Wed Apr 30 2025 David Teigland <teigland@redhat.com> - 4.0.0-1
 - new upstream release
 
