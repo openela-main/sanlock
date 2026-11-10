@@ -1,0 +1,32 @@
+From 9ff5e43154e22583b333bcd60debfc1ee70c9d35 Mon Sep 17 00:00:00 2001
+From: David Teigland <teigland@redhat.com>
+Date: Fri, 31 Jul 2026 12:35:22 -0500
+Subject: [PATCH 4/4] sanlock: fix compat with old paxos lease versions
+
+Newer versions are compatible with older ondisk leases,
+Older versions are incompatible with newer ondisk leases.
+
+So, the check needs to be:;
+  "ondisk lease version" > "code lease version" is an error
+instead of:
+  "ondisk lease version" != "code lease version" is an error
+---
+ src/paxos_lease.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/paxos_lease.c b/src/paxos_lease.c
+index 76c91db..00b7f1f 100644
+--- a/src/paxos_lease.c
++++ b/src/paxos_lease.c
+@@ -1036,7 +1036,7 @@ static int _verify_leader(struct token *token,
+ 		goto fail;
+ 	}
+ 
+-	if ((lr->version & 0xFFFF0000) != PAXOS_DISK_VERSION_MAJOR) {
++	if ((lr->version & 0xFFFF0000) > PAXOS_DISK_VERSION_MAJOR) {
+ 		result = SANLK_LEADER_VERSION;
+ 		goto fail;
+ 	}
+-- 
+2.55.0
+
